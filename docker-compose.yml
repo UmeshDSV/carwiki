@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: car-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: car_db
+      MYSQL_ROOT_HOST: "%"
+    ports:
+      - "3307:3306"
+    volumes:
+      - car-mysql-data:/var/lib/mysql
+
+  redis:
+    image: redis:latest
+    container_name: car-redis
+    ports:
+      - "6379:6379"
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.6.0
+    container_name: car-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+
+  backend:
+    build:
+      context: .
+    container_name: car-backend
+    depends_on:
+      - mysql
+      - redis
+      - elasticsearch
+    ports:
+      - "8080:8080"
+    environment:
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=password
+      - MYSQL_ROOT_HOST=%
+
+volumes:
+  car-mysql-data:
+    driver: local
+  esdata:
+    driver: local
