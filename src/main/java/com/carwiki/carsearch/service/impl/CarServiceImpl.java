@@ -4,7 +4,9 @@ import com.carwiki.carsearch.dto.CarDto;
 import com.carwiki.carsearch.exception.CarCreationException;
 import com.carwiki.carsearch.mapper.CarMapper;
 import com.carwiki.carsearch.model.Car;
+import com.carwiki.carsearch.model.CarDocument;
 import com.carwiki.carsearch.model.Variant;
+import com.carwiki.carsearch.repository.CarDocumentRepository;
 import com.carwiki.carsearch.repository.CarRepository;
 import com.carwiki.carsearch.repository.FeatureRepository;
 import com.carwiki.carsearch.repository.VariantRepository;
@@ -15,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +37,8 @@ public class CarServiceImpl implements CarService {
 
     @Autowired
     private VariantRepository variantRepository;
+    @Autowired
+    private CarDocumentRepository carDocumentRepository;
 
     /**
      * Adds a list of cars and their associated variants, calculates related cars,
@@ -53,7 +58,7 @@ public class CarServiceImpl implements CarService {
             cars.forEach(car -> logger.debug("Mapped CarDto to Car entity: {}", car));
 
             // Save all cars
-            carRepository.saveAll(cars);
+            List<Car> savedCars = carRepository.saveAll(cars);
             logger.info("Successfully saved {} cars to the database.", cars.size());
 
             // Fetch all variants to calculate related cars
@@ -63,6 +68,10 @@ public class CarServiceImpl implements CarService {
             // Calculate related cars and save updated variants
             CalculateRelatedCars.calculateRelatedCars(allVariants);
             variantRepository.saveAll(allVariants);
+            List<CarDocument> carDocuments = savedCars.stream()
+                            .map(savedCar -> new CarDocument(savedCar.getId(),savedCar.getBrand(), savedCar.getModel()))
+                                    .collect(Collectors.toList());
+            carDocumentRepository.saveAll(carDocuments);
 
             logger.info("Successfully calculated and saved related cars for all variants.");
             return "Successfully added the cars.";
