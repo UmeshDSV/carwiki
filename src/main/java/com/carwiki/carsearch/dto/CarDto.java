@@ -1,7 +1,5 @@
 package com.carwiki.carsearch.dto;
 
-import com.carwiki.carsearch.model.Variant;
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

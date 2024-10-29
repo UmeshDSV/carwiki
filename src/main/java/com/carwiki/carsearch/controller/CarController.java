@@ -17,7 +17,11 @@ public class CarController {
 
     @PostMapping("/addCars")
     public ResponseEntity<String> addCar(@RequestBody List<CarDto> carDtos) {
-        return new ResponseEntity<>(carService.addCars(carDtos), HttpStatus.CREATED);
+        try {
+            return new ResponseEntity<>(carService.addCars(carDtos), HttpStatus.CREATED);
+        }catch (RuntimeException e) {
+            return new ResponseEntity<>("Failed to add cars", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
     @GetMapping("/{id}")
     public ResponseEntity<CarDto> getCarbyId(@PathVariable Long id) {

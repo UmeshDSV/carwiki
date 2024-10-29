@@ -8,6 +8,7 @@ import com.carwiki.carsearch.repository.CarRepository;
 import com.carwiki.carsearch.repository.FeatureRepository;
 import com.carwiki.carsearch.repository.VariantRepository;
 import com.carwiki.carsearch.service.VariantService;
+import com.carwiki.carsearch.util.CalculateRelatedCars;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,6 +46,9 @@ public class VariantServiceImpl implements VariantService {
                 .collect(Collectors.toList());
 
         variantRepository.saveAll(variants);
+        List<Variant> allVariants = variantRepository.findAll();
+        CalculateRelatedCars.calculateRelatedCars(allVariants);
+        variantRepository.saveAll(allVariants);
         return "Successfully added variants";
     }
 }
